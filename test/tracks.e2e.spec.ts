@@ -49,7 +49,51 @@ describe('Tracks (e2e)', () => {
         .set(commonHeaders);
 
       expect(response.status).toBe(StatusCodes.OK);
-      expect(response.body).toBeInstanceOf(Array);
+      expect(response.body.items).toBeInstanceOf(Array);
+      expect(typeof response.body.total).toBe('number');
+      expect(response.body.page).toBe(1);
+      expect(response.body.limit).toBe(20);
+    });
+
+    it('should correctly filter tracks by search and respect custom limit', async () => {
+      // Unique name so `search` (case-insensitive contains) can't accidentally
+      // match leftover records from other tests sharing this persistent DB
+      const uniqueTrackDto = {
+        ...createTrackDto,
+        name: 'PAGINATION_SEARCH_TRACK',
+      };
+
+      const creationResponse = await unauthorizedRequest
+        .post(tracksRoutes.create)
+        .set(commonHeaders)
+        .send(uniqueTrackDto);
+
+      const { id } = creationResponse.body;
+
+      expect(creationResponse.statusCode).toBe(StatusCodes.CREATED);
+
+      const searchResponse = await unauthorizedRequest
+        .get(`${tracksRoutes.getAll}?search=${uniqueTrackDto.name}&limit=1`)
+        .set(commonHeaders);
+
+      expect(searchResponse.status).toBe(StatusCodes.OK);
+      expect(searchResponse.body.items).toHaveLength(1);
+      expect(searchResponse.body.items[0].name).toBe(uniqueTrackDto.name);
+      expect(searchResponse.body.limit).toBe(1);
+
+      const cleanupResponse = await unauthorizedRequest
+        .delete(tracksRoutes.delete(id))
+        .set(commonHeaders);
+
+      expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
+    });
+
+    it('should respond with BAD_REQUEST status code for invalid pagination query', async () => {
+      const response = await unauthorizedRequest
+        .get(`${tracksRoutes.getAll}?limit=0`)
+        .set(commonHeaders);
+
+      expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
     it('should correctly get track by id', async () => {
