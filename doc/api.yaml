@@ -8,6 +8,41 @@ servers:
   - url: /api
 
 components:
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      required: false
+      description: Page number (1-based)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    limitParam:
+      name: limit
+      in: query
+      required: false
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    searchParam:
+      name: search
+      in: query
+      required: false
+      description: Case-insensitive substring search by name
+      schema:
+        type: string
+    sortOrderParam:
+      name: sortOrder
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
   schemas:
     User:
       type: object
@@ -104,6 +139,69 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Track'
+    PaginatedTracks:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Track'
+        total:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+      required:
+        - items
+        - total
+        - page
+        - limit
+    PaginatedAlbums:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Album'
+        total:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+      required:
+        - items
+        - total
+        - page
+        - limit
+    PaginatedArtists:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artist'
+        total:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+      required:
+        - items
+        - total
+        - page
+        - limit
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid
@@ -339,16 +437,28 @@ paths:
       tags:
         - Track
       summary: Get tracks list
-      description: Gets all library tracks list
+      description: Gets a paginated list of library tracks, with optional search and sorting
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/searchParam'
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name, duration]
+            default: name
+        - $ref: '#/components/parameters/sortOrderParam'
       responses:
         200:
           description: Successful operation
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Track'
+                $ref: '#/components/schemas/PaginatedTracks'
+        400:
+          description: Bad request. Invalid pagination query parameters
         401:
           $ref: '#/components/responses/UnauthorizedError'
     post:
@@ -497,16 +607,28 @@ paths:
       tags:
         - Album
       summary: Get albums list
-      description: Gets all library albums list
+      description: Gets a paginated list of library albums, with optional search and sorting
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/searchParam'
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name, year]
+            default: name
+        - $ref: '#/components/parameters/sortOrderParam'
       responses:
         200:
           description: Successful operation
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Album'
+                $ref: '#/components/schemas/PaginatedAlbums'
+        400:
+          description: Bad request. Invalid pagination query parameters
         401:
           $ref: '#/components/responses/UnauthorizedError'
     post:
@@ -626,16 +748,28 @@ paths:
       tags:
         - Artist
       summary: Get all artists
-      description: Gets all artists
+      description: Gets a paginated list of artists, with optional search and sorting
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/searchParam'
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [name]
+            default: name
+        - $ref: '#/components/parameters/sortOrderParam'
       responses:
         200:
           description: Successful operation
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Artist'
+                $ref: '#/components/schemas/PaginatedArtists'
+        400:
+          description: Bad request. Invalid pagination query parameters
         401:
           $ref: '#/components/responses/UnauthorizedError'
     post:
