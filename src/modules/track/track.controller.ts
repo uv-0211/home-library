@@ -7,10 +7,12 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import { FindTracksQueryDto } from './dto/find-tracks-query.dto';
 
 @Controller('track')
 export class TrackController {
@@ -22,8 +24,8 @@ export class TrackController {
   }
 
   @Get()
-  async findAll() {
-    return await this.trackService.findAll();
+  async findAll(@Query() query: FindTracksQueryDto) {
+    return await this.trackService.findAll(query);
   }
 
   @Get(':id')

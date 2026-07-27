@@ -3,9 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Track } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { isValidUUID } from 'src/utils/validateUUID';
+import { PaginatedResult, getSkipTake } from 'src/utils/pagination';
+import { FindTracksQueryDto } from './dto/find-tracks-query.dto';
 
 @Injectable()
 export class TrackService {
@@ -15,8 +17,23 @@ export class TrackService {
     return await this.prisma.track.create({ data });
   }
 
-  async findAll() {
-    return await this.prisma.track.findMany();
+  async findAll(query: FindTracksQueryDto): Promise<PaginatedResult<Track>> {
+    const { page, limit, search, sortBy, sortOrder } = query;
+
+    const where: Prisma.TrackWhereInput = search
+      ? { name: { contains: search, mode: 'insensitive' } }
+      : {};
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.track.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        ...getSkipTake(page, limit),
+      }),
+      this.prisma.track.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
   }
 
   async findById(id: string) {
