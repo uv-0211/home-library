@@ -5,7 +5,12 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { isValidUUID } from 'src/utils/validateUUID';
-import { Prisma } from '@prisma/client';
+import { Album, Prisma } from '@prisma/client';
+import { PaginatedResult, getSkipTake } from 'src/utils/pagination';
+import {
+  ALBUM_SORT_FIELDS,
+  FindAlbumsQueryDto,
+} from './dto/find-albums-query.dto';
 
 @Injectable()
 export class AlbumService {
@@ -15,8 +20,33 @@ export class AlbumService {
     return await this.prisma.album.create({ data });
   }
 
-  async findAll() {
-    return await this.prisma.album.findMany();
+  async findAll(query: FindAlbumsQueryDto): Promise<PaginatedResult<Album>> {
+    const { page, limit, search, sortBy, sortOrder } = query;
+
+    if (!ALBUM_SORT_FIELDS.includes(sortBy)) {
+      throw new BadRequestException('Invalid sortBy field');
+    }
+
+    const where: Prisma.AlbumWhereInput = search
+      ? { name: { contains: search, mode: 'insensitive' } }
+      : {};
+
+    const [items, total] = await Promise.all([
+      this.prisma.album.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        ...getSkipTake(page, limit),
+      }),
+      this.prisma.album.count({ where }),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
+    };
   }
 
   async findById(id: string) {

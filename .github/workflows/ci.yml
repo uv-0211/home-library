@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm run lint
+
+      - run: cp .env.example .env
+
+      - run: docker compose up -d --build
+
+      - name: Wait for API to be ready
+        run: |
+          for i in $(seq 1 60); do
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/doc | grep -q 200; then
+              echo "API is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not become ready in time"
+          docker compose logs
+          exit 1
+
+      - run: npm run test:auth
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
+  ai-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: uv-0211/ai-code-review@v1
+        with:
+          pr-url: ${{ github.event.pull_request.html_url }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          max-issues: '5'
+          max-iterations: '2'

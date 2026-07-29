@@ -7,10 +7,12 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
+import { FindAlbumsQueryDto } from './dto/find-albums-query.dto';
 
 @Controller('album')
 export class AlbumController {
@@ -22,8 +24,8 @@ export class AlbumController {
   }
 
   @Get()
-  async findAll() {
-    return await this.albumService.findAll();
+  async findAll(@Query() query: FindAlbumsQueryDto) {
+    return await this.albumService.findAll(query);
   }
 
   @Get(':id')

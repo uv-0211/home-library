@@ -7,10 +7,12 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ArtistService } from './artist.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { FindArtistsQueryDto } from './dto/find-artists-query.dto';
 
 @Controller('artist')
 export class ArtistController {
@@ -22,8 +24,8 @@ export class ArtistController {
   }
 
   @Get()
-  async findAll() {
-    return await this.artistService.findAll();
+  async findAll(@Query() query: FindArtistsQueryDto) {
+    return await this.artistService.findAll(query);
   }
 
   @Get(':id')

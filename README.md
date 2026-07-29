@@ -23,6 +23,12 @@ NestJS backend for a home music library management app.
   - **Albums**
   - **Favorites**
 
+- Pagination, search, and sorting on catalog list endpoints (`/track`, `/artist`, `/album`):
+  - `page`, `limit` — page number and page size (`limit` capped at 100)
+  - `search` — case-insensitive substring match on `name`
+  - `sortBy`, `sortOrder` — sortable fields differ per resource (see table below)
+  - responses are returned as `{ items, total, page, limit, totalPages }`
+
 ## Installation
 
 ### Clone the Repository
@@ -103,7 +109,7 @@ docker compose up --build
 
 | Method | Endpoint     | Description      |
 | ------ | ------------ | ---------------- |
-| GET    | `/track`     | Get all tracks   |
+| GET    | `/track`     | Get a paginated list of tracks. Query: `page`, `limit`, `search`, `sortBy` (`name` \| `duration`), `sortOrder` (`asc` \| `desc`) |
 | GET    | `/track/:id` | Get track by ID  |
 | POST   | `/track`     | Create new track |
 | PUT    | `/track/:id` | Update track     |
@@ -113,7 +119,7 @@ docker compose up --build
 
 | Method | Endpoint      | Description       |
 | ------ | ------------- | ----------------- |
-| GET    | `/artist`     | Get all artists   |
+| GET    | `/artist`     | Get a paginated list of artists. Query: `page`, `limit`, `search`, `sortBy` (`name`), `sortOrder` (`asc` \| `desc`) |
 | GET    | `/artist/:id` | Get artist by ID  |
 | POST   | `/artist`     | Create new artist |
 | PUT    | `/artist/:id` | Update artist     |
@@ -123,7 +129,7 @@ docker compose up --build
 
 | Method | Endpoint     | Description      |
 | ------ | ------------ | ---------------- |
-| GET    | `/album`     | Get all albums   |
+| GET    | `/album`     | Get a paginated list of albums. Query: `page`, `limit`, `search`, `sortBy` (`name` \| `year`), `sortOrder` (`asc` \| `desc`) |
 | GET    | `/album/:id` | Get album by ID  |
 | POST   | `/album`     | Create new album |
 | PUT    | `/album/:id` | Update album     |
