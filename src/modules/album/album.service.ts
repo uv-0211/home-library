@@ -7,7 +7,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { isValidUUID } from 'src/utils/validateUUID';
 import { Album, Prisma } from '@prisma/client';
 import { PaginatedResult, getSkipTake } from 'src/utils/pagination';
-import { FindAlbumsQueryDto } from './dto/find-albums-query.dto';
+import {
+  ALBUM_SORT_FIELDS,
+  FindAlbumsQueryDto,
+} from './dto/find-albums-query.dto';
 
 @Injectable()
 export class AlbumService {
@@ -19,6 +22,10 @@ export class AlbumService {
 
   async findAll(query: FindAlbumsQueryDto): Promise<PaginatedResult<Album>> {
     const { page, limit, search, sortBy, sortOrder } = query;
+
+    if (!ALBUM_SORT_FIELDS.includes(sortBy)) {
+      throw new BadRequestException('Invalid sortBy field');
+    }
 
     const where: Prisma.AlbumWhereInput = search
       ? { name: { contains: search, mode: 'insensitive' } }
@@ -33,7 +40,13 @@ export class AlbumService {
       this.prisma.album.count({ where }),
     ]);
 
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
+    };
   }
 
   async findById(id: string) {

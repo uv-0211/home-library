@@ -139,81 +139,59 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Track'
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        totalPages:
+          type: integer
+          example: 3
+      required:
+        - total
+        - page
+        - limit
+        - totalPages
     PaginatedTracks:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/Track'
-        total:
-          type: integer
-          example: 42
-        page:
-          type: integer
-          example: 1
-        limit:
-          type: integer
-          example: 20
-        totalPages:
-          type: integer
-          example: 3
-      required:
-        - items
-        - total
-        - page
-        - limit
-        - totalPages
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Track'
+          required:
+            - items
     PaginatedAlbums:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/Album'
-        total:
-          type: integer
-          example: 42
-        page:
-          type: integer
-          example: 1
-        limit:
-          type: integer
-          example: 20
-        totalPages:
-          type: integer
-          example: 3
-      required:
-        - items
-        - total
-        - page
-        - limit
-        - totalPages
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Album'
+          required:
+            - items
     PaginatedArtists:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/Artist'
-        total:
-          type: integer
-          example: 42
-        page:
-          type: integer
-          example: 1
-        limit:
-          type: integer
-          example: 20
-        totalPages:
-          type: integer
-          example: 3
-      required:
-        - items
-        - total
-        - page
-        - limit
-        - totalPages
+      allOf:
+        - $ref: '#/components/schemas/PaginationMeta'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Artist'
+          required:
+            - items
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid

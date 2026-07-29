@@ -7,7 +7,10 @@ import { isValidUUID } from 'src/utils/validateUUID';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Artist, Prisma } from '@prisma/client';
 import { PaginatedResult, getSkipTake } from 'src/utils/pagination';
-import { FindArtistsQueryDto } from './dto/find-artists-query.dto';
+import {
+  ARTIST_SORT_FIELDS,
+  FindArtistsQueryDto,
+} from './dto/find-artists-query.dto';
 
 @Injectable()
 export class ArtistService {
@@ -19,6 +22,10 @@ export class ArtistService {
 
   async findAll(query: FindArtistsQueryDto): Promise<PaginatedResult<Artist>> {
     const { page, limit, search, sortBy, sortOrder } = query;
+
+    if (!ARTIST_SORT_FIELDS.includes(sortBy)) {
+      throw new BadRequestException('Invalid sortBy field');
+    }
 
     const where: Prisma.ArtistWhereInput = search
       ? { name: { contains: search, mode: 'insensitive' } }
@@ -33,7 +40,13 @@ export class ArtistService {
       this.prisma.artist.count({ where }),
     ]);
 
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
+    };
   }
 
   async findById(id: string) {

@@ -7,7 +7,10 @@ import { Prisma, Track } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { isValidUUID } from 'src/utils/validateUUID';
 import { PaginatedResult, getSkipTake } from 'src/utils/pagination';
-import { FindTracksQueryDto } from './dto/find-tracks-query.dto';
+import {
+  TRACK_SORT_FIELDS,
+  FindTracksQueryDto,
+} from './dto/find-tracks-query.dto';
 
 @Injectable()
 export class TrackService {
@@ -19,6 +22,10 @@ export class TrackService {
 
   async findAll(query: FindTracksQueryDto): Promise<PaginatedResult<Track>> {
     const { page, limit, search, sortBy, sortOrder } = query;
+
+    if (!TRACK_SORT_FIELDS.includes(sortBy)) {
+      throw new BadRequestException('Invalid sortBy field');
+    }
 
     const where: Prisma.TrackWhereInput = search
       ? { name: { contains: search, mode: 'insensitive' } }
@@ -33,7 +40,13 @@ export class TrackService {
       this.prisma.track.count({ where }),
     ]);
 
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
+    };
   }
 
   async findById(id: string) {
