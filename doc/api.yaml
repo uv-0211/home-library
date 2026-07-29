@@ -155,11 +155,15 @@ components:
         limit:
           type: integer
           example: 20
+        totalPages:
+          type: integer
+          example: 3
       required:
         - items
         - total
         - page
         - limit
+        - totalPages
     PaginatedAlbums:
       type: object
       properties:
@@ -176,11 +180,15 @@ components:
         limit:
           type: integer
           example: 20
+        totalPages:
+          type: integer
+          example: 3
       required:
         - items
         - total
         - page
         - limit
+        - totalPages
     PaginatedArtists:
       type: object
       properties:
@@ -197,11 +205,15 @@ components:
         limit:
           type: integer
           example: 20
+        totalPages:
+          type: integer
+          example: 3
       required:
         - items
         - total
         - page
         - limit
+        - totalPages
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid

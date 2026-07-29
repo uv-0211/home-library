@@ -24,7 +24,7 @@ export class ArtistService {
       ? { name: { contains: search, mode: 'insensitive' } }
       : {};
 
-    const [items, total] = await this.prisma.$transaction([
+    const [items, total] = await Promise.all([
       this.prisma.artist.findMany({
         where,
         orderBy: { [sortBy]: sortOrder },
@@ -33,7 +33,7 @@ export class ArtistService {
       this.prisma.artist.count({ where }),
     ]);
 
-    return { items, total, page, limit };
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findById(id: string) {

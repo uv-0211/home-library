@@ -51,6 +51,7 @@ describe('artist (e2e)', () => {
       expect(typeof response.body.total).toBe('number');
       expect(response.body.page).toBe(1);
       expect(response.body.limit).toBe(20);
+      expect(typeof response.body.totalPages).toBe('number');
     });
 
     it('should correctly filter artists by search and respect custom limit', async () => {
@@ -70,20 +71,24 @@ describe('artist (e2e)', () => {
 
       expect(creationResponse.statusCode).toBe(StatusCodes.CREATED);
 
-      const searchResponse = await unauthorizedRequest
-        .get(`${artistsRoutes.getAll}?search=${uniqueArtistDto.name}&limit=1`)
-        .set(commonHeaders);
+      try {
+        const searchResponse = await unauthorizedRequest
+          .get(
+            `${artistsRoutes.getAll}?search=${encodeURIComponent(uniqueArtistDto.name)}&limit=1`,
+          )
+          .set(commonHeaders);
 
-      expect(searchResponse.status).toBe(StatusCodes.OK);
-      expect(searchResponse.body.items).toHaveLength(1);
-      expect(searchResponse.body.items[0].name).toBe(uniqueArtistDto.name);
-      expect(searchResponse.body.limit).toBe(1);
+        expect(searchResponse.status).toBe(StatusCodes.OK);
+        expect(searchResponse.body.items).toHaveLength(1);
+        expect(searchResponse.body.items[0].name).toBe(uniqueArtistDto.name);
+        expect(searchResponse.body.limit).toBe(1);
+      } finally {
+        const cleanupResponse = await unauthorizedRequest
+          .delete(artistsRoutes.delete(id))
+          .set(commonHeaders);
 
-      const cleanupResponse = await unauthorizedRequest
-        .delete(artistsRoutes.delete(id))
-        .set(commonHeaders);
-
-      expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
+        expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
+      }
     });
 
     it('should respond with BAD_REQUEST status code for invalid pagination query', async () => {

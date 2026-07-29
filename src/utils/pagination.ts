@@ -3,6 +3,7 @@ export interface PaginatedResult<T> {
   total: number;
   page: number;
   limit: number;
+  totalPages: number;
 }
 
 export function getSkipTake(page: number, limit: number) {
